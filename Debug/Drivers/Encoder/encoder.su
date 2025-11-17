@@ -1,0 +1,12 @@
+../Drivers/Encoder/encoder.c:19:9:parity_count	16	static
+../Drivers/Encoder/encoder.c:27:6:encoder_init	32	static
+../Drivers/Encoder/encoder.c:47:6:encoder_update	16	static
+../Drivers/Encoder/encoder.c:56:10:encoder_read_from_register	24	static
+../Drivers/Encoder/encoder.c:97:10:encoder_read_raw_data	16	static
+../Drivers/Encoder/encoder.c:101:6:update_state	40	static
+../Drivers/Encoder/encoder.c:125:8:encoder_read_rotation	16	static
+../Drivers/Encoder/encoder.c:129:9:encoder_read_position_degree	16	static
+../Drivers/Encoder/encoder.c:133:9:encoder_read_position_rad	16	static
+../Drivers/Encoder/encoder.c:137:7:encoder_read_velocity	16	static
+../Drivers/Encoder/encoder.c:141:9:encoder_read_accumulate_position_degree	16	static
+../Drivers/Encoder/encoder.c:145:7:encoder_read_accumulate_position_rad	16	static

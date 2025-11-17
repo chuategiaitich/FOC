@@ -1,8 +1,8 @@
 /*
  * encoder.h
  *
- *  Created on: Nov 15, 2025
- *      Author: tue
+ *  Created on: Nov 17, 2025
+ *      Author: ADMIN
  */
 
 //	Datasheet:	https://www.mouser.com/datasheet/2/588/AS5048_DS000298_4-00-1100510.pdf		(as5048a)
@@ -17,14 +17,11 @@
  *  }
  */
 
-#ifndef INC_ENCODER_H_
-#define INC_ENCODER_H_
+#ifndef ENCODER_ENCODER_H_
+#define ENCODER_ENCODER_H_
 
 #include "stm32f4xx_hal.h"
 #include <math.h>
-
-//#define set_cs_high HAL_GPIO_WritePin(_cs_port, _cs_pin, GPIO_PIN_SET);
-//#define set_cs_low HAL_GPIO_WritePin(_cs_port, _cs_pin, GPIO_PIN_RESET);
 
 typedef struct {
 	uint16_t _cs_pin;
@@ -76,4 +73,4 @@ int32_t encoder_read_accumulate_position_degree(encoder *enc);
 float encoder_read_accumulate_position_rad(encoder *enc);
 float encoder_read_velocity(encoder *enc);
 
-#endif /* INC_ENCODER_H_ */
+#endif /* ENCODER_ENCODER_H_ */

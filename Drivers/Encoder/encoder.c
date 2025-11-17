@@ -1,8 +1,8 @@
 /*
  * encoder.c
  *
- *  Created on: Nov 15, 2025
- *      Author: tue
+ *  Created on: Nov 17, 2025
+ *      Author: ADMIN
  */
 
 #include "encoder.h"
