@@ -1,0 +1,5 @@
+../Drivers/FOC/FOC_Math.c:10:6:Transform_Clarke	1
+../Drivers/FOC/FOC_Math.c:15:6:Transform_Inverse_Clarke	1
+../Drivers/FOC/FOC_Math.c:22:6:Transform_Park	1
+../Drivers/FOC/FOC_Math.c:27:6:Transform_Inverse_Park	1
+../Drivers/FOC/FOC_Math.c:32:6:SpaceVectorPWM	1

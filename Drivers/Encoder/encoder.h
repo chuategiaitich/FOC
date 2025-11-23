@@ -69,8 +69,8 @@ uint16_t encoder_read_raw_data(encoder *enc);
 int8_t encoder_read_rotation(encoder *enc);
 int16_t encoder_read_position_degree(encoder *enc);
 int16_t encoder_read_position_rad(encoder *enc);
-int32_t encoder_read_accumulate_position_degree(encoder *enc);
-float encoder_read_accumulate_position_rad(encoder *enc);
+//int32_t encoder_read_accumulate_position_degree(encoder *enc);
+//float encoder_read_accumulate_position_rad(encoder *enc);
 float encoder_read_velocity(encoder *enc);
 
 #endif /* ENCODER_ENCODER_H_ */

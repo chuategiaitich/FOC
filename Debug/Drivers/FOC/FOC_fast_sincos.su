@@ -1,0 +1,2 @@
+../Drivers/FOC/FOC_fast_sincos.c:20:7:LUT_Sin	16	static
+../Drivers/FOC/FOC_fast_sincos.c:26:7:LUT_Cos	16	static

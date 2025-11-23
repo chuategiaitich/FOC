@@ -24,6 +24,8 @@
 /* USER CODE BEGIN Includes */
 #include "encoder.h"
 #include "stdint.h"
+#include "math.h"
+#include "FOC_fast_sincos.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +51,8 @@ UART_HandleTypeDef huart3;
 osThreadId Task_Read_EncodHandle;
 /* USER CODE BEGIN PV */
 int16_t test;
+float hsin;
+float hcos;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -317,6 +321,8 @@ void Run_Task_Read_Encoder(void const * argument)
 	/* Infinite loop */
 	for (;;) {
 		encoder_update(&encoder_value);
+		hsin = LUT_Sin(encoder_value.current_raw_data);
+		hcos = LUT_Cos(encoder_value.current_raw_data);
 		osDelay(1);
 	}
   /* USER CODE END 5 */
