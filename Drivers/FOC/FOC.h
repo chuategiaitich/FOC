@@ -47,5 +47,6 @@ typedef struct
 }hmotor;
 
 void Motor_Init(hmotor *mt);
+void update_openloop(float *theta, float *freq);
 
 #endif /* FOC_FOC_H_ */

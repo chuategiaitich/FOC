@@ -22,6 +22,7 @@
 
 #include "stm32f4xx_hal.h"
 #include <math.h>
+#include <string.h>
 
 typedef struct {
 	uint16_t _cs_pin;

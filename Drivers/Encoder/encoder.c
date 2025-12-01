@@ -138,6 +138,8 @@ float encoder_read_velocity(encoder *enc) {
 	return enc->current_velocity;
 }
 
+
+
 //int32_t encoder_read_accumulate_position_degree(encoder *enc) {
 //	return (int32_t) (enc->current_position_degree + enc->current_rotation * 360);
 //}

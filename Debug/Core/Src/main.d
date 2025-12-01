@@ -45,11 +45,11 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
- /home/tue/Documents/Project_stm32/FOC/Drivers/Encoder/encoder.h \
- /home/tue/Documents/Project_stm32/FOC/Drivers/FOC/FOC.h \
- /home/tue/Documents/Project_stm32/FOC/Drivers/FOC/FOC_Math.h \
- /home/tue/Documents/Project_stm32/FOC/Drivers/FOC/FOC_fast_sincos.h \
- /home/tue/Documents/Project_stm32/FOC/Drivers/FOC/FOC_PID.h
+ E:/Project_Stm32/FOC/Drivers/Encoder/encoder.h \
+ E:/Project_Stm32/FOC/Drivers/FOC/FOC.h \
+ E:/Project_Stm32/FOC/Drivers/FOC/FOC_Math.h \
+ E:/Project_Stm32/FOC/Drivers/FOC/FOC_fast_sincos.h \
+ E:/Project_Stm32/FOC/Drivers/FOC/FOC_PID.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -97,8 +97,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
-/home/tue/Documents/Project_stm32/FOC/Drivers/Encoder/encoder.h:
-/home/tue/Documents/Project_stm32/FOC/Drivers/FOC/FOC.h:
-/home/tue/Documents/Project_stm32/FOC/Drivers/FOC/FOC_Math.h:
-/home/tue/Documents/Project_stm32/FOC/Drivers/FOC/FOC_fast_sincos.h:
-/home/tue/Documents/Project_stm32/FOC/Drivers/FOC/FOC_PID.h:
+E:/Project_Stm32/FOC/Drivers/Encoder/encoder.h:
+E:/Project_Stm32/FOC/Drivers/FOC/FOC.h:
+E:/Project_Stm32/FOC/Drivers/FOC/FOC_Math.h:
+E:/Project_Stm32/FOC/Drivers/FOC/FOC_fast_sincos.h:
+E:/Project_Stm32/FOC/Drivers/FOC/FOC_PID.h:

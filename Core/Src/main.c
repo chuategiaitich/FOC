@@ -65,7 +65,7 @@ float Vd = 0.0f, Vq = 0.0f;
 float Va, Vb, Vc;
 float hsin;
 float hcos;
-uint16_t pulse=4500;
+uint16_t pulse = 4500;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -83,7 +83,19 @@ void Run_Task_PWM(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void init() {
+	encoder_init(&encoder_value, &as5048a, SPI1_CS_Pin, SPI1_CS_GPIO_Port,
+			&hspi1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);	// Complementary nếu dùng
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+	//	HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);   // <<< DÒNG NÀY PHẢI CÓ
+	HAL_TIM_Base_Start_IT(&htim1);  // <<< Quan trọng: bật ngắt mỗi chu kỳ PWM
+	__HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE); // Đảm bảo IT Update được enable
+}
 /* USER CODE END 0 */
 
 /**
@@ -119,18 +131,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-	encoder_init(&encoder_value, &as5048a, SPI1_CS_Pin, SPI1_CS_GPIO_Port,
-			&hspi1);
-
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);	// Complementary nếu dùng
-	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
-	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
-//	HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);   // <<< DÒNG NÀY PHẢI CÓ
-	HAL_TIM_Base_Start_IT(&htim1);  // <<< Quan trọng: bật ngắt mỗi chu kỳ PWM
-	__HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE); // Đảm bảo IT Update được enable
+	init();
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -437,32 +438,31 @@ void Run_Task_Read_Encoder(void const * argument)
   /* USER CODE BEGIN 5 */
 	/* Infinite loop */
 	for (;;) {
-		encoder_update(&encoder_value);
+//		encoder_update(&encoder_value);
 ////		hsin = LUT_Sin(encoder_value.current_raw_data);
 ////		hcos = LUT_Cos(encoder_value.current_raw_data);
-		osDelay(1);
+		osDelay(10);
 	}
   /* USER CODE END 5 */
 }
 
 /* USER CODE BEGIN Header_Run_Task_PWM */
 /**
-* @brief Function implementing the Task_PWM thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the Task_PWM thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_Run_Task_PWM */
 void Run_Task_PWM(void const * argument)
 {
   /* USER CODE BEGIN Run_Task_PWM */
-  /* Infinite loop */
-  for(;;)
-  {
+	/* Infinite loop */
+	for (;;) {
 //	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
 
 //	  if(pulse = 8999)pulse=0;
-    osDelay(1);
-  }
+		osDelay(1);
+	}
   /* USER CODE END Run_Task_PWM */
 }
 
@@ -485,9 +485,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
   /* USER CODE BEGIN Callback 1 */
 	if (htim->Instance == TIM1) {
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse/2);
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pulse/3);
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse/4);
+		encoder_update(&encoder_value);
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse / 2);
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pulse / 3);
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse / 4);
 	}
   /* USER CODE END Callback 1 */
 }
