@@ -10,9 +10,16 @@
 
 #include "FOC_fast_sincos.h"
 
-#define ONE_DEVIDE_SQRT_THREE	0.577350269f
-#define TWO_DEVIDE_SQRT_THREE	1.154700538f
-#define SQRT_THREE_DEVIDE_TWO	0.866025404f
+#define T_1_DEVIDE_SQRT3		0.577350269f
+#define T_2_DEVIDE_SQRT3		1.154700538f
+#define T_SQRT3_DEVIDE_2		0.866025404f
+
+#define T_PI					3.141592653f
+#define T_2PI					6.283185307f
+#define T_PI_DEVIDE_2			1.570796326f
+#define T_PI_DEVIDE_4			0.785398163f
+#define T_2PI_DEVIDE_3			2.094395102f
+#define T_3PI_DEVIDE_2			4.712388980f
 
 //typedef struct {
 //    float ia, ib, ic;

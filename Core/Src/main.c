@@ -25,12 +25,13 @@
 #include "encoder.h"
 #include "stdint.h"
 #include "math.h"
-#include "FOC_fast_sincos.h"
+#include "FOC.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define PWM_PERIOD	9600U
+#define PWM_CENTER	(PWM_PERIOD/2)
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -46,13 +47,25 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim1;
+
 UART_HandleTypeDef huart3;
 
 osThreadId Task_Read_EncodHandle;
+osThreadId Task_PWMHandle;
 /* USER CODE BEGIN PV */
-int16_t test;
+volatile float electrical_angle = 0.0f;   // rad, 0 ~ 2π
+volatile float mechanical_angle = 0.0f;   // rad, tích lũy
+volatile float velocity_rps = 0.0f;   // rad/s cơ khí
+volatile int32_t total_degrees = 0;
+
+float target_current_d = 0.0f;
+float target_current_q = 2.0f;   // Ví dụ: điều khiển dòng q = 2A → torque
+float Vd = 0.0f, Vq = 0.0f;
+float Va, Vb, Vc;
 float hsin;
 float hcos;
+uint16_t pulse=4500;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,7 +73,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_TIM1_Init(void);
 void Run_Task_Read_Encoder(void const * argument);
+void Run_Task_PWM(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -68,9 +83,7 @@ void Run_Task_Read_Encoder(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void init() {
-	encoder_init(&encoder_value, &as5048a, SPI1_CS_Pin, SPI1_CS_GPIO_Port, &hspi1);
-}
+
 /* USER CODE END 0 */
 
 /**
@@ -104,8 +117,20 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_SPI1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  init();
+	encoder_init(&encoder_value, &as5048a, SPI1_CS_Pin, SPI1_CS_GPIO_Port,
+			&hspi1);
+
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);	// Complementary nếu dùng
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+//	HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);   // <<< DÒNG NÀY PHẢI CÓ
+	HAL_TIM_Base_Start_IT(&htim1);  // <<< Quan trọng: bật ngắt mỗi chu kỳ PWM
+	__HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE); // Đảm bảo IT Update được enable
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -128,6 +153,10 @@ int main(void)
   /* definition and creation of Task_Read_Encod */
   osThreadDef(Task_Read_Encod, Run_Task_Read_Encoder, osPriorityNormal, 0, 128);
   Task_Read_EncodHandle = osThreadCreate(osThread(Task_Read_Encod), NULL);
+
+  /* definition and creation of Task_PWM */
+  osThreadDef(Task_PWM, Run_Task_PWM, osPriorityNormal, 0, 512);
+  Task_PWMHandle = osThreadCreate(osThread(Task_PWM), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
@@ -239,6 +268,93 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 0;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
+  htim1.Init.Period = 4500-1;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 1;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_ENABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_ENABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_ENABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
   * @brief USART3 Initialization Function
   * @param None
   * @retval None
@@ -287,6 +403,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -321,11 +438,32 @@ void Run_Task_Read_Encoder(void const * argument)
 	/* Infinite loop */
 	for (;;) {
 		encoder_update(&encoder_value);
-		hsin = LUT_Sin(encoder_value.current_raw_data);
-		hcos = LUT_Cos(encoder_value.current_raw_data);
+////		hsin = LUT_Sin(encoder_value.current_raw_data);
+////		hcos = LUT_Cos(encoder_value.current_raw_data);
 		osDelay(1);
 	}
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_Run_Task_PWM */
+/**
+* @brief Function implementing the Task_PWM thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Run_Task_PWM */
+void Run_Task_PWM(void const * argument)
+{
+  /* USER CODE BEGIN Run_Task_PWM */
+  /* Infinite loop */
+  for(;;)
+  {
+//	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
+
+//	  if(pulse = 8999)pulse=0;
+    osDelay(1);
+  }
+  /* USER CODE END Run_Task_PWM */
 }
 
 /**
@@ -346,7 +484,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+	if (htim->Instance == TIM1) {
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse/2);
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pulse/3);
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse/4);
+	}
   /* USER CODE END Callback 1 */
 }
 
