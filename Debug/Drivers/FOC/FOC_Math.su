@@ -1,5 +1,6 @@
 ../Drivers/FOC/FOC_Math.c:10:6:Transform_Clarke	24	static
 ../Drivers/FOC/FOC_Math.c:15:6:Transform_Inverse_Clarke	40	static
-../Drivers/FOC/FOC_Math.c:22:6:Transform_Park	32	static
-../Drivers/FOC/FOC_Math.c:27:6:Transform_Inverse_Park	32	static
-../Drivers/FOC/FOC_Math.c:32:6:SpaceVectorPWM	4	static
+../Drivers/FOC/FOC_Math.c:21:6:Transform_Park	32	static
+../Drivers/FOC/FOC_Math.c:26:6:Transform_Inverse_Park	32	static
+../Drivers/FOC/FOC_Math.c:31:9:get_sector	32	static
+../Drivers/FOC/FOC_Math.c:38:6:SpaceVectorPWM	4	static
